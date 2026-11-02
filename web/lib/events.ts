@@ -41,5 +41,5 @@ export type SearchRequest = {
   dryRun: boolean;
   screenshots: boolean; // ask the server for browser screenshots
   maxResults: number; // listings to scrape, 0-100
-  apiKey?: string; // optional: the user's own Anthropic key, forwarded to the MCP server
+  apiKey: string; // required: the user's Anthropic key, forwarded to the MCP server
 };

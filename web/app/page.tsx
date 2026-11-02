@@ -228,8 +228,8 @@ function HowItWorks() {
         <div className="note">
           <Icon name="lock" />
           <div>
-            <b>Your API key stays with you.</b> If you paste your own Anthropic key, it is sent with this one
-            search only and never stored. Otherwise the server uses its own key.
+            <b>Your API key stays with you.</b> Each search needs your own Anthropic key: it is sent with
+            that one search only and never stored.
           </div>
         </div>
         <div className="note">
@@ -256,7 +256,7 @@ export default function Page() {
   const [screenshots, setScreenshots] = useState(false);
   const [zoomed, setZoomed] = useState<number | null>(null);
   const [maxResults, setMaxResults] = useState(20);
-  // Kept in memory only (never stored); empty = the MCP server uses its own key.
+  // Required. Kept in memory only (never stored), sent with each search.
   const [apiKey, setApiKey] = useState("");
   const [running, setRunning] = useState(false);
   const [ranDryRun, setRanDryRun] = useState(false);
@@ -267,7 +267,7 @@ export default function Page() {
 
   async function search(e: React.FormEvent) {
     e.preventDefault();
-    if (!description.trim() || running) return;
+    if (!description.trim() || !apiKey.trim() || running) return;
     const controller = new AbortController();
     abortRef.current = controller;
     setRunning(true);
@@ -281,7 +281,7 @@ export default function Page() {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description, dryRun, screenshots, maxResults, apiKey: apiKey.trim() || undefined }),
+        body: JSON.stringify({ description, dryRun, screenshots, maxResults, apiKey: apiKey.trim() }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -399,29 +399,33 @@ export default function Page() {
                 Cancel
               </button>
             ) : (
-              <button type="submit" className="btn" disabled={!description.trim()}>
+              <button type="submit" className="btn" disabled={!description.trim() || !apiKey.trim()}
+                      title={!apiKey.trim() ? "Enter your Anthropic API key first" : undefined}>
                 Search <span aria-hidden="true">→</span>
               </button>
             )}
           </div>
 
-          <details className="keybox">
-            <summary><Icon name="lock" /> Use my own Anthropic API key <span className="muted">(optional)</span></summary>
+          <div className="keybox">
+            <label htmlFor="apikey" className="keylabel"><Icon name="lock" /> Anthropic API key <span className="req">required</span></label>
             <div className="keyrow">
               <input
                 id="apikey"
                 type="password"
                 autoComplete="off"
                 spellCheck={false}
-                aria-label="Anthropic API key"
-                placeholder="sk-ant-…  — leave empty to use the server's key"
+                required
+                placeholder="sk-ant-…"
                 value={apiKey}
                 disabled={running}
                 onChange={(e) => setApiKey(e.target.value)}
               />
-              <p className="muted small">Sent with this search only, never stored.</p>
+              <p className="muted small">
+                Sent with each search only, never stored. Get one at{" "}
+                <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noreferrer">console.anthropic.com</a>.
+              </p>
             </div>
-          </details>
+          </div>
         </form>
 
         <div ref={resultsRef} className="results-anchor" />

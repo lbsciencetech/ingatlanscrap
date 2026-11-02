@@ -257,14 +257,22 @@ h1 em { font-style: italic; color: var(--accent); }
 .btn.outline:hover { background: var(--accent-soft); }
 
 .keybox { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); font-size: 14px; }
-.keybox summary {
+.keybox .keylabel {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  cursor: pointer;
-  list-style: none;
+  font-weight: 600;
 }
-.keybox summary::-webkit-details-marker { display: none; }
+.keybox .req {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
 .keybox .icon { width: 16px; height: 16px; color: var(--muted); }
 .keyrow { margin-top: 10px; }
 .keyrow input {

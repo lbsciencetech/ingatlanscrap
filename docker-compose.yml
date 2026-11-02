@@ -6,7 +6,6 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env}
       APP_USER: ${APP_USER:-admin}
       APP_PASSWORD: ${APP_PASSWORD:?set APP_PASSWORD in .env}
       MAX_CONCURRENT_SEARCHES: ${MAX_CONCURRENT_SEARCHES:-2}

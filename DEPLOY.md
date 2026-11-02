@@ -54,7 +54,7 @@ Sur le VPS :
 cd /opt/ingatlanscrap
 cp .env.example .env
 openssl rand -base64 24        # → un mot de passe solide pour APP_PASSWORD
-nano .env                      # remplis ANTHROPIC_API_KEY, APP_PASSWORD, NGROK_AUTHTOKEN, NGROK_URL
+nano .env                      # remplis APP_PASSWORD, NGROK_AUTHTOKEN, NGROK_URL
 chmod 600 .env
 ```
 
@@ -69,7 +69,9 @@ docker compose logs -f ngrok   # doit afficher "started tunnel" avec ton URL
 Ouvre ton `NGROK_URL` :
 1. ngrok gratuit affiche d'abord une page d'avertissement → clique **Visit Site**
    (une fois par navigateur) ;
-2. le navigateur demande l'identifiant (`APP_USER`, par défaut `admin`) et le mot de passe.
+2. le navigateur demande l'identifiant (`APP_USER`, par défaut `admin`) et le mot de passe ;
+3. sur la page, chaque utilisateur saisit **sa propre clé API Anthropic** (obligatoire,
+   jamais stockée) : le serveur n'en a pas.
 
 Les conteneurs redémarrent seuls (plantage, reboot du VPS) grâce à `restart: unless-stopped`.
 
@@ -92,14 +94,13 @@ il faudra un VPS chez un autre hébergeur ou un proxy résidentiel.
 | Mettre à jour | refaire le `rsync` de l'étape 3, puis `docker compose up -d --build` |
 | Redémarrer | `docker compose restart` |
 | Arrêter | `docker compose down` |
-| Changer le mot de passe / la clé | modifier `.env`, puis `docker compose up -d` |
+| Changer le mot de passe | modifier `.env`, puis `docker compose up -d` |
 | Libérer de la place | `docker image prune -f` |
 
 ## Réglages (`.env`)
 
 | Variable | Rôle |
 |---|---|
-| `ANTHROPIC_API_KEY` | clé Claude du serveur (un utilisateur peut quand même saisir la sienne sur la page) |
 | `APP_USER` / `APP_PASSWORD` | identifiants de la page (HTTP Basic, protégé par le HTTPS de ngrok) |
 | `NGROK_AUTHTOKEN` / `NGROK_URL` | tunnel ngrok et ton domaine statique |
 | `MAX_CONCURRENT_SEARCHES` | recherches simultanées (2 par défaut) ; les suivantes attendent leur tour |

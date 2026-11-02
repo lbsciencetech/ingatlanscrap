@@ -23,6 +23,9 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "maxResults must be an integer between 0 and 100" }, { status: 400 });
   }
   const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
+  if (!apiKey) {
+    return Response.json({ error: "an Anthropic API key is required" }, { status: 400 });
+  }
   if (apiKey.length > 300 || /\s/.test(apiKey)) {
     return Response.json({ error: "invalid API key format" }, { status: 400 });
   }
@@ -43,7 +46,7 @@ export async function POST(request: Request): Promise<Response> {
           dryRun: Boolean(body.dryRun),
           screenshots: Boolean(body.screenshots),
           maxResults,
-          apiKey: apiKey || undefined,
+          apiKey,
         },
         emit,
         request.signal, // closing the tab kills the Python server and its browser

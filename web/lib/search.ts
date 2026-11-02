@@ -1,6 +1,6 @@
 // Server-side only (imported by the API route): MCP client that runs
 // ../mcp_server.py and calls its search_flats tool. The MCP server calls
-// Claude with its own API key; this client needs none.
+// Claude with the API key the user typed in the page (required).
 import path from "node:path";
 import readline from "node:readline";
 import type { Readable } from "node:stream";
@@ -46,15 +46,11 @@ async function acquireSlot(emit: (e: SearchEvent) => void, signal: AbortSignal):
   };
 }
 
-// Give the server only a minimal environment (PATH, HOME, …), so it uses its
-// own API key (env ANTHROPIC_API_KEY of the container, or ../.env) and never
-// inherits one from the web app by accident.
-function serverEnv(apiKey?: string): Record<string, string> {
+// Give the server only a minimal environment (PATH, HOME, …) plus the user's
+// key, so it never inherits another key from the web app by accident.
+function serverEnv(apiKey: string): Record<string, string> {
   const env: Record<string, string> = { ...getDefaultEnvironment(), PYTHONUNBUFFERED: "1" };
-  // The server's own key, when the web app's environment provides one (Docker).
-  if (process.env.ANTHROPIC_API_KEY) env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-  // A key the user chose to send: the server uses it instead of its own.
-  if (apiKey) env.INGATLAN_CLIENT_API_KEY = apiKey;
+  env.INGATLAN_CLIENT_API_KEY = apiKey;
   return env;
 }
 
