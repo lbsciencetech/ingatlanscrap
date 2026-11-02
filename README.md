@@ -1,60 +1,59 @@
 # ingatlanscrap — Flat finder
 
-Recherche d'appartements sur [ingatlan.com](https://ingatlan.com) **en langage naturel**.
-Tu décris le bien voulu (en hongrois, anglais ou français), Claude le traduit en critères
-de recherche, un vrai navigateur remplit le formulaire du site, et les annonces trouvées
-s'affichent dans une page web.
+Search for flats on [ingatlan.com](https://ingatlan.com) **in plain language**.
+Describe the property you want (in Hungarian, English or French), Claude turns it into
+search criteria, a real browser fills in the site's search form, and the matching
+listings show up in a web page.
 
-> *« Un 3 pièces rénové dans le XIe arrondissement, moins de 90 M Ft, avec balcon et ascenseur »*
-> → la recherche ingatlan.com correspondante, et la liste des annonces.
+> *"A renovated 3-room flat in the XI. district under 90 million, with a balcony and a lift"*
+> → the matching ingatlan.com search, and the list of listings.
 
-## Comment ça marche
+## How it works
 
 ```
-page web (Next.js)  ──MCP stdio──>  mcp_server.py ──> Claude : description → critères (validés)
-                                                  └─> Camoufox : remplit le formulaire ingatlan.com
-                                                                 et lit les pages de résultats
+web page (Next.js)  ──MCP stdio──>  mcp_server.py ──> Claude: description → criteria (validated)
+                                                  └─> Camoufox: fills in the ingatlan.com form
+                                                                and reads the results pages
 ```
 
-1. **Tu décris** ce que tu cherches, en quelques mots.
-2. **Claude construit la recherche** : il produit les champs exacts du formulaire
-   d'ingatlan.com. Un validateur vérifie chaque valeur ; en cas d'erreur, Claude corrige
-   (jusqu'à 3 essais).
-3. **Un navigateur la lance** : [Camoufox](https://camoufox.com) (Firefox furtif) ouvre le
-   site, remplit le formulaire champ par champ et le soumet.
-4. **Les annonces reviennent** dans la page, avec un lien vers chaque annonce et vers la
-   recherche complète sur ingatlan.com. Des captures d'écran sont disponibles en option.
+1. **You describe** what you are looking for, in a few words.
+2. **Claude builds the search**: it produces the exact fields of ingatlan.com's search
+   form. A validator checks every value; if one is wrong, Claude gets the errors and fixes
+   it (up to 3 tries).
+3. **A browser runs it**: [Camoufox](https://camoufox.com) (a stealth Firefox) opens the
+   site, fills in the form field by field and submits it.
+4. **Listings come back** to the page, with a link to each ad and to the full search on
+   ingatlan.com. Screenshots are available as an option.
 
-ingatlan.com n'a pas d'API publique : remplir le vrai formulaire garantit des résultats
-identiques à ceux du site.
+ingatlan.com has no public search API: filling in the real form means the results are
+exactly what the site shows.
 
-## Clé API Anthropic (obligatoire)
+## Anthropic API key (required)
 
-L'application appelle Claude : **une clé API Anthropic est obligatoire**. Crée-la sur
+The app calls Claude, so **an Anthropic API key is required**. Create one at
 [console.anthropic.com](https://console.anthropic.com/settings/keys).
 
-- **Page web** : chaque utilisateur saisit sa clé dans le champ prévu. Elle est envoyée
-  avec chaque recherche uniquement et n'est jamais stockée. Sans clé, la recherche ne
-  part pas.
-- **Ligne de commande** : mets `ANTHROPIC_API_KEY` dans `.env` (ou dans l'environnement).
+- **Web page**: each user enters their own key in the key field. It is sent with each
+  search only and never stored. Without a key, the search does not start.
+- **Command line**: put `ANTHROPIC_API_KEY` in `.env` (or in your environment).
 
-## Installation locale
+## Local setup
 
-Prérequis : Python 3 et Node.js récents (l'image Docker utilise Python 3.14 et Node.js 24).
+Requirements: recent Python 3 and Node.js (the Docker image uses Python 3.14 and Node.js 24).
 
 ```bash
 git clone https://github.com/lbsciencetech/ingatlanscrap.git
 cd ingatlanscrap
 
-# serveur Python + navigateur
+# Python server + browser
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m camoufox fetch      # télécharge le navigateur Camoufox
+.venv/bin/python -m camoufox fetch      # downloads the Camoufox browser
 
-cp .env.example .env                    # clé utilisée par le client en ligne de commande
+cp .env.example .env                    # key used by the command-line client
 ```
 
-### Page web
+### Web page
 
 ```bash
 cd web
@@ -62,36 +61,36 @@ npm ci
 npm run dev                             # http://localhost:3000
 ```
 
-Saisis ta clé API, décris le bien, puis **Search**. Le mode *Build search only* demande
-seulement les critères à Claude, sans lancer le navigateur.
+Enter your API key, describe the property, then click **Search**. The *Build search only*
+mode only asks Claude for the criteria, without starting the browser.
 
-### Ligne de commande
+### Command line
 
 ```bash
-.venv/bin/python mcp_client.py --max-results 10 "2 pièces dans le XIe arrondissement, max 90 M Ft"
-.venv/bin/python mcp_client.py --dry-run "studio à Budapest VIII, moins de 40 M Ft"
-.venv/bin/python mcp_client.py --screenshots shots/ "3 pièces avec balcon, XIII"
+.venv/bin/python mcp_client.py --max-results 10 "2 rooms in the XI. district, max 90M Ft"
+.venv/bin/python mcp_client.py --dry-run "studio in Budapest VIII, under 40M Ft"
+.venv/bin/python mcp_client.py --screenshots shots/ "3 rooms with a balcony, XIII"
 ```
 
-## Structure du projet
+## Project layout
 
-| Fichier | Rôle |
+| File | Role |
 |---|---|
-| `fillform.py` | schéma des critères, validation, remplissage du formulaire |
-| `run_search.py` | lance Camoufox, soumet la recherche, récupère les annonces et les captures |
-| `mcp_server.py` | serveur MCP : outil `search_flats(description, dry_run, max_results, screenshots)` |
-| `mcp_client.py` | client MCP en ligne de commande |
-| `web/` | page Next.js (client MCP, diffuse la progression en continu) |
-| `Dockerfile`, `docker-compose.yml` | image unique (page + serveur + navigateur) et tunnel ngrok |
-| `DEPLOY.md` | mise en ligne sur un VPS |
+| `fillform.py` | criteria schema, validation, form filling |
+| `run_search.py` | starts Camoufox, submits the search, collects listings and screenshots |
+| `mcp_server.py` | MCP server: tool `search_flats(description, dry_run, max_results, screenshots)` |
+| `mcp_client.py` | command-line MCP client |
+| `web/` | Next.js page (MCP client, streams progress live) |
+| `Dockerfile`, `docker-compose.yml` | single image (page + server + browser) and ngrok tunnel |
+| `DEPLOY.md` | deploying to a VPS (in French) |
 
-## Mise en production
+## Deployment
 
-Un conteneur Docker et un tunnel [ngrok](https://ngrok.com) suffisent : pas de nom de
-domaine, pas de certificat, aucun port ouvert. La page est protégée par mot de passe
-(HTTP Basic). Guide pas à pas : **[DEPLOY.md](DEPLOY.md)**.
+One Docker container and an [ngrok](https://ngrok.com) tunnel are enough: no domain name,
+no certificate, no open port. The page is password-protected (HTTP Basic).
+Step-by-step guide: **[DEPLOY.md](DEPLOY.md)**.
 
-## Avertissement
+## Disclaimer
 
-Ce projet automatise un site tiers : respecte ses conditions d'utilisation et limite le
-nombre de requêtes. Chaque recherche consomme des tokens sur la clé API utilisée.
+This project automates a third-party website: respect its terms of use and keep the
+number of requests low. Each search uses tokens on the API key it runs with.
