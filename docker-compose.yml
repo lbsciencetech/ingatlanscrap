@@ -1,0 +1,25 @@
+# Flat finder in production: the app + an ngrok tunnel (public HTTPS URL,
+# no open port, no domain or certificate to manage). Settings come from .env
+# (copy .env.example). See DEPLOY.md.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in .env}
+      APP_USER: ${APP_USER:-admin}
+      APP_PASSWORD: ${APP_PASSWORD:?set APP_PASSWORD in .env}
+      MAX_CONCURRENT_SEARCHES: ${MAX_CONCURRENT_SEARCHES:-2}
+    # Firefox needs more shared memory than Docker's 64 MB default.
+    shm_size: 1gb
+    # No "ports:": the app is only reachable through the ngrok tunnel.
+    # For a local test without ngrok, uncomment:
+    # ports: ["127.0.0.1:3000:3000"]
+
+  ngrok:
+    image: ngrok/ngrok:3.39.11-debian
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:?set NGROK_AUTHTOKEN in .env}
+    command: ["http", "app:3000", "--url=${NGROK_URL:?set NGROK_URL in .env}", "--log=stdout"]

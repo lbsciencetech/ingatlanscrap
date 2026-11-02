@@ -1,0 +1,15 @@
+# Keep the build context small and secrets out of the image.
+.venv/
+**/__pycache__/
+web/node_modules/
+web/.next/
+web/.env*
+web/next-env.d.ts
+web/*.tsbuildinfo
+.env
+.env.*
+!.env.example
+shots/
+*.png
+*.jpg
+.git/

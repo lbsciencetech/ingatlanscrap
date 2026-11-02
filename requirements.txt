@@ -1,0 +1,4 @@
+anthropic==2.3.0
+camoufox==0.5.9
+mcp==2.3.0
+playwright==1.62.0
